@@ -1,17 +1,27 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MOVA26 · 26天执行计划</title><style>:root{--g:#1f7a4d;--bg:#f5f7f3;--ink:#172019;--muted:#6b746d}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--ink)}main{max-width:720px;margin:auto;padding:24px 16px 80px}.brand{font-weight:900;letter-spacing:3px;font-size:15px}.hero{padding:30px 4px}h1{font-size:48px;line-height:1.03;margin:10px 0}.card{background:#fff;border:1px solid #e2e7e1;border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 10px 30px #1720190c}.muted{color:var(--muted)}button{border:0;background:var(--g);color:#fff;border-radius:14px;padding:13px 17px;font-weight:800;cursor:pointer}button.secondary{background:#fff;color:var(--g);border:1px solid #b8d5c4}.auth-actions{display:flex;gap:10px;flex-wrap:wrap}.auth-actions button{min-width:110px}input,select,textarea{width:100%;padding:12px;border:1px solid #dce3dc;border-radius:12px;margin:5px 0 10px;background:#fff}.action{border:1px solid #e1e6e1;border-radius:15px;padding:14px;margin:10px 0}.tag{display:inline-block;padding:6px 10px;border-radius:99px;background:#e4f3e9;color:var(--g);font-size:12px;font-weight:800}.pay{background:#172019;color:#fff}.pay .muted{color:#bbc5bd}.hidden{display:none}.bar{height:9px;background:#e8ece8;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--g)}#msg.error{color:#a33232}#msg.ok{color:var(--g)}@media(max-width:500px){h1{font-size:39px}}</style></head><body><main><div class="brand">MOVA26</div><div class="hero"><span class="tag">26 天减脂执行计划</span><h1>把改变，<br>变成行动。</h1><p>今天只做三件事。</p><p class="muted">MOVA26 根据你今天的状态调整行动。状态差就降低难度，不追求完美，只追求明天还会回来。</p></div><section id="auth" class="card"><h2>开始我的 26 天</h2><input id="email" type="email" autocomplete="email" placeholder="邮箱"><input id="pw" type="password" autocomplete="current-password" placeholder="密码（至少 6 位）"><div class="auth-actions"><button onclick="login()">登录</button><button class="secondary" onclick="signup()">注册新账号</button></div><p id="msg" class="muted"></p></section><section id="app" class="hidden"><div class="card"><span id="day" class="tag">DAY 1</span><h2 id="coach">今天，只完成这三件事。</h2><div id="actions"></div></div><div class="card"><h2>今天状态</h2><label>运动</label><select id="exercise"><option>没运动</option><option>轻微活动</option><option>正常运动</option><option>高强度运动</option></select><label>饮水</label><select id="water"><option>&lt;1000ml</option><option>1000-1500ml</option><option>1500-2000ml</option><option>&gt;2000ml</option></select><label>饮食</label><select id="diet"><option>比较克制</option><option selected>正常</option><option>偏多</option><option>明显失控</option></select><label>状态</label><select id="mood"><option>很好</option><option selected>还行</option><option>有点难坚持</option><option>很想摆烂</option></select><textarea id="note" placeholder="今天最难的是什么？"></textarea><button onclick="checkin()">保存并调整今天行动</button></div><div class="card"><h2>7 天复盘</h2><p id="review" class="muted">连续记录后，MOVA 会帮你找到下一周最容易坚持的重点。</p><button onclick="weekly()">生成本周复盘</button></div><div id="paywall" class="card pay hidden"><span class="tag">MOVA26 完整计划</span><h2>继续接下来的 23 天</h2><p class="muted">测试期暂不收费。正式上线后，这里将用于解锁完整 26 天执行计划。</p><button onclick="unlockDemo()">测试期免费解锁</button></div><div class="card"><h3>26 天进度</h3><div class="bar"><i id="bar" style="width:4%"></i></div><p id="progress" class="muted">Day 1 / 26</p><button onclick="logout()">退出登录</button></div></section><p class="muted" style="font-size:12px;text-align:center">MOVA26 提供行为执行支持，不构成医疗诊断、治疗或个体化营养医疗建议。</p></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-const U='https://ywrsrarppqgnkbjokpux.supabase.co',K='sb_publishable_uPN5ehSR0SlKqn9wicaePQ_LyBP8IAN',db=supabase.createClient(U,K);let user,session;const date=()=>new Date().toLocaleDateString('en-CA');
-function authInput(){const e=email.value.trim(),p=pw.value;if(!e)return {error:'请输入邮箱'};if(!p||p.length<6)return {error:'请输入至少 6 位密码'};return {e,p}}
-function showMsg(text,type=''){msg.textContent=text;msg.className=type||'muted'}
-async function login(){const v=authInput();if(v.error)return showMsg(v.error,'error');showMsg('正在登录…');const {data,error}=await db.auth.signInWithPassword({email:v.e,password:v.p});if(error){const m=(error.message||'').toLowerCase();if(m.includes('invalid login credentials'))return showMsg('邮箱或密码不正确。这个账号如果已经注册，请确认密码后再试。','error');if(m.includes('email not confirmed'))return showMsg('这个邮箱还没有完成验证，请先打开注册确认邮件。','error');return showMsg('登录失败：'+error.message,'error')}session=data.session;user=data.user||session?.user;if(!session||!user)return showMsg('登录没有成功，请稍后再试。','error');showMsg('登录成功','ok');enter()}
-async function signup(){const v=authInput();if(v.error)return showMsg(v.error,'error');showMsg('正在注册…');const {data,error}=await db.auth.signUp({email:v.e,password:v.p});if(error){const m=(error.message||'').toLowerCase();if(m.includes('already registered')||m.includes('already been registered'))return showMsg('这个邮箱已经注册过了，请直接点“登录”。','error');return showMsg('注册失败：'+error.message,'error')}if(data.session){session=data.session;user=data.user||session.user;showMsg('注册并登录成功','ok');return enter()}showMsg('注册成功。请到邮箱完成确认，然后回来点“登录”。','ok')}
-async function enter(){auth.classList.add('hidden');app.classList.remove('hidden');let {data}=await db.from('daily_checkins').select('checkin_date').eq('user_id',user.id).order('checkin_date',{ascending:true});let n=Math.min(26,Math.max(1,new Set((data||[]).map(x=>x.checkin_date)).size));day.textContent='DAY '+n;progress.textContent='Day '+n+' / 26';bar.style.width=Math.round(n/26*100)+'%';if(n>=3&&!localStorage.getItem('mova26demo'))paywall.classList.remove('hidden');await coachDaily()}
-async function invoke(kind){let {data,error}=await db.functions.invoke('project26-coach',{body:{kind}});if(error)throw error;return data}
-async function coachDaily(){try{let d=await invoke('daily');coach.textContent=d.coach||'今天，只完成这三件事。';actions.innerHTML=(d.actions||[]).map(a=>'<div class="action"><b>'+a.position+'. '+esc(a.title)+'</b><p class="muted">'+esc(a.reason||'')+'</p></div>').join('')}catch(e){actions.innerHTML='<p class="muted">MOVA 正在准备今天的行动，请先完成一次状态打卡。</p>'}}
-async function checkin(){let p={user_id:user.id,checkin_date:date(),exercise:exercise.value,water:water.value,diet:diet.value,mood:mood.value,note:note.value||null,updated_at:new Date().toISOString()};let {error}=await db.from('daily_checkins').upsert(p,{onConflict:'user_id,checkin_date'});if(error)return alert(error.message);await coachDaily();await enter()}
-async function weekly(){try{let d=await invoke('weekly');review.innerHTML='<b>'+esc(d.summary)+'</b><br><br>下一周重点：'+esc(d.next_focus)}catch(e){review.textContent='复盘生成失败，请稍后再试。'}}
-function unlockDemo(){localStorage.setItem('mova26demo','1');paywall.classList.add('hidden');alert('测试期已免费解锁。')}
-async function logout(){await db.auth.signOut();location.reload()}
-function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-db.auth.getSession().then(({data})=>{if(data.session){session=data.session;user=session.user;enter()}})
-</script></body></html>
+MOVA26
+先体验，不用注册
+3 分钟救场 · 不用注册
+别等明天重新开始。 现在就把今天救回来。
+刚吃多了、没运动、太累、体重不动、晚上嘴馋——MOVA 不给你上课，只根据你现在的状态，给出 3 个今天做得到的下一步。
+你不需要把今天变完美。你只需要避免一次失控，变成连续几天放弃。
+你买的不是“减脂知识”
+而是每次卡住时，少一次错误决策
+即时个性化
+你现在最需要解决什么？
+点一个，马上生成今天的救场方案。
+刚刚吃多了
+怕今天毁了，想补救
+今天没运动
+没时间 / 不想动
+太累了
+知道该做，但做不动
+体重不降
+坚持几天却没变化
+晚上想吃东西
+现在就很想找零食
+已经摆烂几天
+想重新开始但很难
+为什么 MOVA 不让你“明天重新开始”？
+真正让减脂失败的，往往不是一次吃多或一天没运动，而是一次偏离之后连续放弃。MOVA 的价值不是监督你完美，而是在你最容易掉线的时候，给一个足够小的下一步。
+MOVA26 提供一般性的行为执行支持，不构成医疗诊断、治疗或个体化营养医疗建议。若你有饮食失调、孕期、慢性病或医生要求的特殊饮食，请优先遵循专业医疗建议。
 
